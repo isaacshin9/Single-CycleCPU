@@ -2,12 +2,69 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-
+#include <stdio>
 using namespace std;
 
 int pc = 0;
 string in = "";
 int regfile[32];
+
+int jump = 0;
+int regDst = 0;
+int ALUSrc = 0;
+int Memto_reg = 0;
+int regWrite = 0
+int mem_read = 0;
+int mem_write = 0;
+int branch = 0;
+int instType1 = 0;
+int instType2 = 0;
+
+
+void alu_control(){
+
+}
+
+void control_unit(char opcode[]){
+  // SET ALL CONTROL VALUES TO ZERO
+  jump = 0;
+  regDst = 0;
+  ALUSrc = 0;
+  Memto_reg = 0;
+  regWrite = 0;
+  mem_read = 0;
+  mem_write = 0;
+  branch = 0;
+  
+  
+
+
+  if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '0' && opcode[5] == '0' ){
+    regDst = 1;
+    regWrite = 1;
+    instType1 = 1;
+  }
+  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
+    ALUSrc = 1;
+    Memto_reg = 1;
+    regWrite = 1;
+    mem_read = 1;
+  }
+  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '1' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
+    ALUSrc = 1;
+    mem_write = 1;
+  }
+  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '1' && opcode[4] == '0' && opcode[5] == '0' ){
+    branch = 1;
+    instType2 = 1;
+  }
+  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '0' ){
+    jump = 1;
+  }
+
+  alu_control();
+
+}
 
 void fetch();
 
@@ -27,7 +84,7 @@ void exe(){
 
 void decode(string instr){
   int n = instr.length();
-  int opcode = 0;
+  char opcode[6];
   int read_reg1 = 0;
   int read_data1 = 0;
   int read_reg2 = 0;
@@ -43,24 +100,12 @@ void decode(string instr){
   
 
   for(int y = 0; y < 6; y++){
-        opcode = opcode * 2;
-        opcode = opcode + (instruct[y] - '0');
+        opcode[y] = instruct[y];
     }
+    control_unit(opcode);
+
+
     
-  if(opcode == 2 || opcode == 3){
-      for(int yy = 6; yy < 32; yy++){
-          jump_address = jump_address * 2;
-          jump_address = jump_address + (instruct[yy] - '0');
-          if(opcode == 2){
-            instr_type = "j";
-          }
-          if(opcode == 3){
-            instr_type = "jal";
-          }
-          
-    }
-  }
-  else{
     for(int t = 6; t < 11; t++){
         read_reg1 = read_reg1 * 2;
         read_reg1 = read_reg1 + (instruct[t] - '0');
@@ -83,12 +128,11 @@ void decode(string instr){
 
   
   cout << "Opcode: " << opcode << endl;
-  cout << "Instruction Type: " << instr_type << endl;
   cout << "ReadReg1: " << read_reg1 << endl;
   cout << "ReadData1: " << read_data1 << endl;
   cout << "ReadReg2: " << read_reg2 << endl;
   cout << "ReadData2: " << read_data2 << endl;
-  
+  cout << 
 
 
   exe();
