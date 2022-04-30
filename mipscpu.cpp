@@ -2,20 +2,20 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-#include <stdio>
+#include <stdio.h>
 using namespace std;
 
 int pc = 0;
 string in = "";
 int regfile[32];
-
+int d_mem[32];
 int jump = 0;
 int regDst = 0;
 int ALUSrc = 0;
 int Memto_reg = 0;
-int regWrite = 0
+int regWrite = 0;
 int mem_read = 0;
-int mem_write = 0;
+int mem_Write = 0;
 int branch = 0;
 int instType1 = 0;
 int instType2 = 0;
@@ -23,6 +23,8 @@ int instType2 = 0;
 int next_pc = 0;
 int jump_target = 0;
 int branch_target = 0;
+
+int total_clock_cycles = 0;
 
 string alu_op = "0000";
 
@@ -60,7 +62,7 @@ void control_unit(char opcode[]){
   Memto_reg = 0;
   regWrite = 0;
   mem_read = 0;
-  mem_write = 0;
+  mem_Write = 0;
   branch = 0;
   alu_op = "0000";
   
@@ -78,7 +80,7 @@ void control_unit(char opcode[]){
   }
   else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '1' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
     ALUSrc = 1;
-    mem_write = 1;
+    mem_Write = 1;
     alu_op = "0010";
   }
   else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '1' && opcode[4] == '0' && opcode[5] == '0' ){
@@ -96,11 +98,10 @@ void fetch();
 
 
 void wb (){
-
   fetch();
 }
 
-void mem(int result){
+void mem(){
   wb();
 }
 
@@ -122,7 +123,8 @@ void exe(int read_data1, int read_data2){
         result = ~(read_data1 | read_data2);
     }
 
-  mem(result);
+  mem();
+  cout << result << endl;
 }
 
 void decode(string instr){
@@ -163,7 +165,7 @@ void decode(string instr){
         }
       jump_target = jump_address * 4;
     }
-    
+
     else{
       if(instType2 = 1){
         for(int a = 26; a < 32; a++){
@@ -171,6 +173,11 @@ void decode(string instr){
         }
         alu_control(funct);
       }
+      else{
+        //i-type
+        cout<< " i-type" << endl;
+      }
+
       for(int t = 6; t < 11; t++){
           read_reg1 = read_reg1 * 2;
           read_reg1 = read_reg1 + (instruct[t] - '0');
@@ -199,7 +206,7 @@ void fetch(){
     string code = in.substr(plc, 32);
     decode(code);
   }
-  next_pc = pc + 4;
+  pc = pc + 4;
 
 }
 
