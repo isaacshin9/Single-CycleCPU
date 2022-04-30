@@ -19,10 +19,30 @@ int mem_write = 0;
 int branch = 0;
 int instType1 = 0;
 int instType2 = 0;
+sting alu_op = "0000";
 
 
-void alu_control(){
+void alu_control(char funct[]){
 
+
+  if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '0' && funct[5] == '0' ){
+    alu_op = 
+  }
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '1' ){
+    
+  }
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '1' && funct[3] == '0' && funct[4] == '1' && funct[5] == '1' ){
+    
+  }
+  else if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '0' ){
+   
+  }
+  else if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
+   
+  }
+
+
+  
 }
 
 void control_unit(char opcode[]){
@@ -35,34 +55,37 @@ void control_unit(char opcode[]){
   mem_read = 0;
   mem_write = 0;
   branch = 0;
-  
+  alu_op = "0000";
   
 
 
   if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '0' && opcode[5] == '0' ){
     regDst = 1;
     regWrite = 1;
-    instType1 = 1;
+    instType2 = 1;
   }
   else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
     ALUSrc = 1;
     Memto_reg = 1;
     regWrite = 1;
     mem_read = 1;
+    alu_op = "0010";
   }
   else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '1' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
     ALUSrc = 1;
     mem_write = 1;
+    alu_op = "0010";
   }
   else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '1' && opcode[4] == '0' && opcode[5] == '0' ){
     branch = 1;
     instType2 = 1;
+    alu_op = "0110";
   }
   else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '0' ){
     jump = 1;
   }
 
-  alu_control();
+ 
 
 }
 
@@ -78,7 +101,7 @@ void mem(){
   wb();
 }
 
-void exe(){
+void exe(string alu_op){
   mem();
 }
 
@@ -92,6 +115,7 @@ void decode(string instr){
   int jump_address = 0;
   string instr_type = "";
   char instruct[n+1];
+  char funct[6];
   strcpy(instruct, instr.c_str());
   for( int i = 0; i < n; i++){
     cout << instruct[i];
@@ -102,8 +126,20 @@ void decode(string instr){
   for(int y = 0; y < 6; y++){
         opcode[y] = instruct[y];
     }
+    
+      
+  
+    
     control_unit(opcode);
 
+    if(instType2 = 1){
+      for(int a = 26; a < 32; a++){
+        funct[a] = instruct[a];
+      }
+      alu_control(funct);
+    }
+
+    exe(alu_op);
 
     
     for(int t = 6; t < 11; t++){
@@ -132,9 +168,6 @@ void decode(string instr){
   cout << "ReadData1: " << read_data1 << endl;
   cout << "ReadReg2: " << read_reg2 << endl;
   cout << "ReadData2: " << read_data2 << endl;
-  cout << 
-
-
   exe();
 }
 
