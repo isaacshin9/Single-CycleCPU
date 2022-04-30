@@ -25,20 +25,23 @@ sting alu_op = "0000";
 void alu_control(char funct[]){
 
 
-  if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '0' && funct[5] == '0' ){
-    alu_op = 
+  if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '0' && funct[5] == '0' ){
+    alu_op = "0010";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '1' ){
-    
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
+    alu_op = "0110";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '1' && funct[3] == '0' && funct[4] == '1' && funct[5] == '1' ){
-    
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '0' ){
+    alu_op = "0000";
   }
-  else if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '0' ){
-   
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '1' ){
+    alu_op = "0001";
   }
-  else if (funct[0] == '0' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
-   
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '1' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
+    alu_op = "0111";
+  }
+  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '1' && funct[5] == '1' ){
+    alu_op = "1100";
   }
 
 
