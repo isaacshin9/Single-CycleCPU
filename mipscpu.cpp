@@ -4,12 +4,14 @@
 #include <string>
 #include <cstring>
 #include <stdio.h>
+#include <math.h>
+
 using namespace std;
 //testing git poosh
 
 int pc = 0;
 string in = "";
-int regfile[31];
+int registerfile[31];
 int d_mem[31];
 int jump = 0;
 int regDst = 0;
@@ -32,9 +34,9 @@ int total_clock_cycles = 0;
 string alu_op;
 
 
-void alu_control(string op){
+void alu_control(){
   
-
+   
   
 }
 
@@ -92,7 +94,7 @@ void control_unit(string op){
     mem_Write = 0;
     ALUSrc = 0;
     regWrite = 0;
-    inst_type = 01;
+    inst_type = 0;
   }
   //J
   if(op = "000011"|| op = "000010"){
@@ -110,8 +112,6 @@ void control_unit(string op){
   }
 
 }
-
-void fetch();
 
 
 void wb (){
@@ -144,6 +144,18 @@ void exe(int read_data1, int read_data2){
   cout << result << endl;
 }
 
+int binary_to_decimal(string binary){
+  int value = 0;
+  int index = 0;
+  for(int i = binary.length() - 1;i >= 0;i--){
+    if(binary[i] == '1'){
+      value += pow(2, index);
+      }
+      index++;
+}
+  return(value);
+}
+
 void decode(string code){
   string opcode = code.substr(0,6);
   int rs;
@@ -170,19 +182,30 @@ void decode(string code){
   //execute jump data path
   if(jump == 1){
     immediate = str.substring(6, 32);
-    //will finish later
+
   }
+
   //execute beq data path
   else if(branch == 1){
 
+
   }
+  //executes LW
+  else(){
+
+  }
+  //executes SW
+  else(){
+
+  }
+
   //execute R type
   else if(ALUSrc == 0){
 
   }
 
-  read_data1 = regfile[read_reg1];
-  read_data2 = regfile[read_reg2];
+  read_data1 = registerfile[read_reg1];
+  read_data2 = registerfile[read_reg2];
 
   exe(read_data1, read_data2);
       
@@ -197,7 +220,7 @@ void fetch(vector<string> inst){
   while(pc / 4 < inst.size()){
     total_clock_cycles = total_clock_cycles + 1;
     cout << "Total clock cycles: " << total_clock_cycles;
-    decode(inst[pc/4]);
+    decode(inst[pc / 4]);
     new_pc = pc + 4;
 
   }
