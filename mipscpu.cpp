@@ -4,13 +4,15 @@
 #include <cstring>
 #include <stdio.h>
 #include <math.h>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
 int pc = 0;
 string in = "";
-int regfile[32];
-int d_mem[32];
+int regfile[32] = {0};
+int d_mem[32] = {0};
 int jump = 0;
 int regDst = 0;
 int ALUSrc = 0;
@@ -27,7 +29,7 @@ int jump_target = 0;
 int branch_target = 0;
 
 int total_clock_cycles = 0;
-
+std::stringstream stream;
 string alu_op = "0000";
 
 
@@ -159,13 +161,12 @@ void mem(int writereg, int result){
     if (mem_Write == 1){ //SW
         cout << "attempting wb1" << endl;
         val = regfile[writereg];
-        wb(result, val);   
+        wb(result, val);
     }
     else if (mem_read == 1){ //lw
+
         cout << "attempting wb2" << endl;
-
-        //val = d_mem[result / 4]; // divide by 4 to place it in the memory by 4
-
+        val = d_mem[result / 4]; // divide by 4 to place it in the memory by 4
         wb(writereg, val);
     }
     else{
@@ -176,9 +177,9 @@ void mem(int writereg, int result){
 }
 
 void exe(int read_data1, int read_data2, int writereg){
-    int result;
-
-    if(alu_op == "1000"){//add
+    int result = 0;
+    
+    if(alu_op == "0010"){//add
         result = read_data1 + read_data2;
     }
     else if(alu_op == "0110"){ //sub 
@@ -193,8 +194,12 @@ void exe(int read_data1, int read_data2, int writereg){
     else if(alu_op == "1100"){//nor
         result = ~(read_data1 | read_data2);
     }
+    else if(alu_op == "0111"){//slt
+        result = read_data1 < read_data2;
+    }
+    cout << "result: " << result << endl;
     mem(writereg, result);
-    cout << result << endl;
+    
 }
 
 void decode(string instr){
@@ -267,9 +272,8 @@ void decode(string instr){
   if (instType2 == 0) {
     read_data2 = immediate;
   }
-  cout << "going to exe with r1: " << read_data1 << " r2: " << read_data2 << " wr: " << writereg << endl;
-
-  exe(read_data1, read_data2, writereg);
+    cout << "going to exe with r1: " << read_data1 << " r2: " << read_data2 << " wr: " << writereg << endl;
+    exe(read_data1, read_data2, writereg);
 }
     
 
@@ -285,7 +289,6 @@ void fetch(){
     cout << pc/4 << " here now" << endl;
     decode(code);
   }
-  cout << "end of text" << endl;
 
 }
 
@@ -295,6 +298,11 @@ void fetch(){
 int main (){
     string line;
     ifstream myfile;
+    for (int i = 0; i < 32; i++) {
+      regfile[i] = 0;
+      d_mem[i] = 0;
+    }
+
     myfile.open("sample_part1.txt");
 
     if(myfile.is_open()){
@@ -308,5 +316,6 @@ int main (){
     } 
 
     fetch();
+    cout << dec << "total clock cycles : " << total_clock_cycles << endl;
 }
 
