@@ -3,8 +3,9 @@
 #include <string>
 #include <cstring>
 #include <stdio.h>
+#include <math.h>
+
 using namespace std;
-//testing git poosh
 
 int pc = 0;
 string in = "";
@@ -30,32 +31,30 @@ int total_clock_cycles = 0;
 string alu_op = "0000";
 
 
-void alu_control(char funct[]){
+void alu_control(string funct){
 
-
-  if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '0' && funct[5] == '0' ){
+  if (funct == "100000" || funct == "101011" || funct == "100011"){
     alu_op = "0010";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
+  else if (funct == "100010" || funct == "000100"){
     alu_op = "0110";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '0' ){
+  else if (funct == "100100"){
     alu_op = "0000";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '1' ){
+  else if (funct == "100101"){
     alu_op = "0001";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '1' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
+  else if (funct == "101010"){
     alu_op = "0111";
   }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '1' && funct[5] == '1' ){
+  else if (funct == "100111"){
     alu_op = "1100";
   }
 
-  
 }
 
-void control_unit(char opcode[]){
+void control_unit(string opcode){
   // SET ALL CONTROL VALUES TO ZERO
   jump = 0;
   regDst = 0;
@@ -65,31 +64,34 @@ void control_unit(char opcode[]){
   mem_read = 0;
   mem_Write = 0;
   branch = 0;
+  instType1 = 0;
+  instType2 = 0;
+
   alu_op = "0000";
   
-  if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '0' && opcode[5] == '0' ){
+  if (opcode == "000000"){
     regDst = 1;
     regWrite = 1;
     instType2 = 1;
   }
-  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
+  else if (opcode == "100011"){
     ALUSrc = 1;
     Memto_reg = 1;
     regWrite = 1;
     mem_read = 1;
     alu_op = "0010";
   }
-  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '1' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
+  else if (opcode == "101011"){
     ALUSrc = 1;
     mem_Write = 1;
     alu_op = "0010";
   }
-  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '1' && opcode[4] == '0' && opcode[5] == '0' ){
+  else if (opcode == "000100"){
     branch = 1;
     instType2 = 1;
     alu_op = "0110";
   }
-  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '0' ){
+  else if (opcode == "000011" || opcode == "000001"){
     jump = 1;
   }
 
@@ -124,7 +126,7 @@ void exe(int read_data1, int read_data2){
         result = ~(read_data1 | read_data2);
     }
 
-  mem();
+    mem();
   cout << result << endl;
 }
 
@@ -141,56 +143,52 @@ void decode(string instr){
   int jump_address = 0;
   int branch_address = 0;
 
-  char instruct[n+1];
-  char funct[6];
-  char opcode[6];
+  string immediate;
+  string funct;
+  string opcode;
 
-  strcpy(instruct, instr.c_str());
+  int rs = 0;
+  int rt = 0;
+  int rd = 0;
+  opcode = instr.substr(0,6);
 
-  for( int i = 0; i < n; i++){
-    cout << instruct[i];
-  }
-  cout << endl;
-  
-
-  for(int y = 0; y < 6; y++){
-        opcode[y] = instruct[y];
-    }
     
     control_unit(opcode);
+  
 
-    if(jump = 1){
-        for(int b = 6; b < 32; b++){
-          jump_address = jump_address * 2;
-          jump_address = jump_address + (instruct[b] - '0');
-        }
-      jump_target = jump_address * 4;
+    if(jump = 1){ //Jump Instructions
+
+
     }
+    else if(branch = 1){ //Branch Instructions
 
+    }
     else{
-      if(instType2 = 1){
-        for(int a = 26; a < 32; a++){
-          funct[a-26] = instruct[a];
-        }
+      if(instType2 = 1){  //r-type
+
+        funct = instr.substr(25,6);
+        cout << "r-type " << funct << endl;
         alu_control(funct);
+
       }
-      else{
-        //i-type
+      else{  //i-type
+
         cout<< " i-type" << endl;
+
       }
 
-      for(int t = 6; t < 11; t++){
-          read_reg1 = read_reg1 * 2;
-          read_reg1 = read_reg1 + (instruct[t] - '0');
-      }
+      //for(int t = 6; t < 11; t++){
+      //    read_reg1 = read_reg1 * 2;
+      //    read_reg1 = read_reg1 + (instruct[t] - '0');
+      //}
 
-      for(int p = 11; p < 16; p++){
-          read_reg2 = read_reg2 * 2;
-          read_reg2 = read_reg2 + (instruct[p] - '0');
-      }
+      //for(int p = 11; p < 16; p++){
+      //    read_reg2 = read_reg2 * 2;
+      //    read_reg2 = read_reg2 + (instruct[p] - '0');
+      //}
 
-      read_data1 = regfile[read_reg1];
-      read_data2 = regfile[read_reg2];
+      //read_data1 = regfile[read_reg1];
+      //read_data2 = regfile[read_reg2];
 
       exe(read_data1, read_data2);
     }
