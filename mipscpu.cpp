@@ -19,6 +19,7 @@ int regWrite = 0;
 int mem_read = 0;
 int mem_Write = 0;
 int branch = 0;
+int inst_type = 0;
 int instType1 = 0;
 int instType2 = 0;
 
@@ -28,70 +29,84 @@ int branch_target = 0;
 
 int total_clock_cycles = 0;
 
-string alu_op = "0000";
+string alu_op;
 
 
-void alu_control(char funct[]){
-
-
-  if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '0' && funct[5] == '0' ){
-    alu_op = "0010";
-  }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
-    alu_op = "0110";
-  }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '0' ){
-    alu_op = "0000";
-  }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '0' && funct[5] == '1' ){
-    alu_op = "0001";
-  }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '1' && funct[3] == '0' && funct[4] == '1' && funct[5] == '0' ){
-    alu_op = "0111";
-  }
-  else if (funct[0] == '1' && funct[1] == '0' && funct[2] == '0' && funct[3] == '1' && funct[4] == '1' && funct[5] == '1' ){
-    alu_op = "1100";
-  }
+void alu_control(string op){
+  
 
   
 }
 
-void control_unit(char opcode[]){
-  // SET ALL CONTROL VALUES TO ZERO
-  jump = 0;
-  regDst = 0;
-  ALUSrc = 0;
-  Memto_reg = 0;
-  regWrite = 0;
-  mem_read = 0;
-  mem_Write = 0;
-  branch = 0;
-  alu_op = "0000";
-  
-  if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '0' && opcode[5] == '0' ){
+void control_unit(string op){
+//All R type
+  if(op = "000000"){
     regDst = 1;
+    jump = 0;
+    branch = 0;
+    mem_read = 0;
+    Memto_reg = 0;
+    alu_op = 1;
+    mem_Write = 0;
+    ALUSrc = 0;
     regWrite = 1;
-    instType2 = 1;
+    inst_type = 1;
+
   }
-  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
-    ALUSrc = 1;
-    Memto_reg = 1;
-    regWrite = 1;
+  //LW
+  if(op = "100011"){
+    regDst = 0;
+    jump = 0;
+    branch = 0;
     mem_read = 1;
-    alu_op = "0010";
-  }
-  else if (opcode[0] == '1' && opcode[1] == '0' && opcode[2] == '1' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '1' ){
+    Memto_reg = 1;
+    alu_op = 0;
+    mem_Write = 0;
     ALUSrc = 1;
-    mem_Write = 1;
-    alu_op = "0010";
+    regWrite = 1;
+    inst_type = 0;
+
   }
-  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '1' && opcode[4] == '0' && opcode[5] == '0' ){
+  //SW
+  if(op = "101011"){
+    regDst = 0;
+    jump = 0;
+    branch = 0;
+    mem_read = 1;
+    Memto_reg = 1;
+    alu_op = 0;
+    mem_Write = 0;
+    ALUSrc = 1;
+    regWrite = 1;
+    inst_type = 0;
+
+  }
+  //BEQ
+  if(op = "00100"){
+    regDst = 0;
+    jump = 0;
     branch = 1;
-    instType2 = 1;
-    alu_op = "0110";
+    mem_read = 0;
+    Memto_reg = 0;
+    alu_op = 1;
+    mem_Write = 0;
+    ALUSrc = 0;
+    regWrite = 0;
+    inst_type = 01;
   }
-  else if (opcode[0] == '0' && opcode[1] == '0' && opcode[2] == '0' && opcode[3] == '0' && opcode[4] == '1' && opcode[5] == '0' ){
+  //J
+  if(op = "000011"|| op = "000010"){
+    regDst = 0;
     jump = 1;
+    branch = 0;
+    mem_read = 0;
+    Memto_reg = 0;
+    alu_op = 0;
+    mem_Write = 0;
+    ALUSrc = 0;
+    regWrite = 0;
+    inst_type = 0;
+
   }
 
 }
@@ -129,10 +144,17 @@ void exe(int read_data1, int read_data2){
   cout << result << endl;
 }
 
-void decode(string instr){
+void decode(string code){
+  string opcode = code.substr(0,6);
+  int rs;
+  int rt;
+  int rd;
+  int shamt;
+  int funct;
+  string immediate;
+  string address;
 
-
-  int n = instr.length();
+  int n = code.length();
 
   int read_reg1 = 0;
   int read_data1 = 0;
@@ -142,12 +164,16 @@ void decode(string instr){
 
   int jump_address = 0;
   int branch_address = 0;
-
-  char instruct[n+1];
-  char funct[6];
-  char opcode[6];
-
   strcpy(instruct, instr.c_str());
+
+  control_unit(opcode);
+
+  if(jump == 1){
+    immediate = str.substring(6, 26);
+    //will finish later
+  }
+  else if(branch )
+
 
   for( int i = 0; i < n; i++){
     cout << instruct[i];
@@ -208,15 +234,9 @@ void fetch(vector<string> inst){
     total_clock_cycles = total_clock_cycles + 1;
     cout << "Total clock cycles: " << total_clock_cycles;
     decode(inst[pc/4]);
+    new_pc = pc + 4;
 
   }
-  
-  int plc = pc / 4 * 34;
-  if(plc < in.length()){
-    string code = in.substr(plc, 32);
-    decode(code);
-  }
-  pc = pc + 4;
 
 }
 
