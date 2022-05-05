@@ -1,3 +1,4 @@
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -8,8 +9,8 @@ using namespace std;
 
 int pc = 0;
 string in = "";
-int regfile[32];
-int d_mem[32];
+int regfile[31];
+int d_mem[31];
 int jump = 0;
 int regDst = 0;
 int ALUSrc = 0;
@@ -130,6 +131,7 @@ void exe(int read_data1, int read_data2){
 
 void decode(string instr){
 
+
   int n = instr.length();
 
   int read_reg1 = 0;
@@ -193,6 +195,7 @@ void decode(string instr){
       read_data2 = regfile[read_reg2];
 
       exe(read_data1, read_data2);
+      
     }
   }
     
@@ -200,8 +203,14 @@ void decode(string instr){
 
 
 
-void fetch(){
+void fetch(vector<string> inst){
+  while(pc / 4 < inst.size()){
+    total_clock_cycles = total_clock_cycles + 1;
+    cout << "Total clock cycles: " << total_clock_cycles;
+    decode(inst[pc/4]);
 
+  }
+  
   int plc = pc / 4 * 34;
   if(plc < in.length()){
     string code = in.substr(plc, 32);
@@ -214,23 +223,25 @@ void fetch(){
 
 
 
-int main (){
+int main() {
+    //creating a dynamic array which will hold 32 bit instruction
+    vector<string> instruction;
     string line;
     ifstream myfile;
     myfile.open("sample_part1.txt");
 
     if(myfile.is_open()){
       while(getline(myfile, line)){
-        in = in + line + '\n';
+        instruction.push_back(line);
       }
         myfile.close();
     }
     else{
       cout << "Unable to open file";
     } 
-
     cout << "input: "<< endl << in << endl << endl;
 
-    fetch();
+    fetch(instruction);
+
 }
 
