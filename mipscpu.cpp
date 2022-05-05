@@ -24,6 +24,7 @@ int branch = 0;
 int inst_type = 0;
 int instType1 = 0;
 int instType2 = 0;
+int jumpReg;
 
 int next_pc = 0;
 int jump_target = 0;
@@ -34,8 +35,32 @@ int total_clock_cycles = 0;
 string alu_op;
 
 
-void alu_control(){
-  
+void alu_control(string funct){
+  //SW, LW, ADD
+  if (funct == "100000" || funct == "101011" || funct == "100011"){
+    alu_op = "0010";
+  }
+  //SUB, BEQ
+  else if (funct == "100010" || funct == "000100"){
+    alu_op = "0110";
+  }
+  //AND
+  else if (funct == "100100"){
+    alu_op = "0000";
+  }
+  //OR
+  else if (funct == "100101"){
+    alu_op = "0001";
+  }
+  //SLT
+  else if (funct == "101010"){
+    alu_op = "0111";
+  }
+  //NOR
+  else if (funct == "100111"){
+    alu_op = "1100";
+  }
+  return funct
    
   
 }
@@ -96,8 +121,21 @@ void control_unit(string op){
     regWrite = 0;
     inst_type = 0;
   }
-  //J
-  if(op = "000011"|| op = "000010"){
+  //Jal
+  if(op = "000011"){
+    regDst = 1;
+    jump = 1;
+    branch = 0;
+    mem_read = 0;
+    Memto_reg = 1;
+    alu_op = 0;
+    mem_Write = 0;
+    ALUSrc = 0;
+    regWrite = 1;
+    inst_type = 0;
+  }
+  //Jr
+  if(op = "001000"){
     regDst = 0;
     jump = 1;
     branch = 0;
@@ -108,7 +146,7 @@ void control_unit(string op){
     ALUSrc = 0;
     regWrite = 0;
     inst_type = 0;
-
+    int jumpReg;
   }
 
 }
@@ -187,7 +225,10 @@ void decode(string code){
 
   //execute beq data path
   else if(branch == 1){
+      
 
+  }
+  else{
 
   }
   //executes LW
