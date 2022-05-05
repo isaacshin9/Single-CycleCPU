@@ -150,26 +150,34 @@ void wb (int writereg, int result){
         cout << " is modified to 0x" << hex << result << endl;
     }
     total_clock_cycles = total_clock_cycles + 1;
+    fetch();
 }
 
 void mem(int writereg, int result){
-  // Each entry of d_mem array will be accessed w/ following addresses
-	// refer to project description
+
     int val = 0;
     if (mem_Write == 1){ //SW
+        cout << "attempting wb1" << endl;
         val = regfile[writereg];
-        wb(result, val);
-    }else if (mem_read == 1){ //lw
-        val = d_mem[result / 4]; // divide by 4 to place it in the memory by 4
+        wb(result, val);   
+    }
+    else if (mem_read == 1){ //lw
+        cout << "attempting wb2" << endl;
+
+        //val = d_mem[result / 4]; // divide by 4 to place it in the memory by 4
+
         wb(writereg, val);
-    }else{
+    }
+    else{
         // R/I
+        cout << "attempting wb3" << endl;
         wb(writereg,result);
     }
 }
 
 void exe(int read_data1, int read_data2, int writereg){
     int result;
+
     if(alu_op == "1000"){//add
         result = read_data1 + read_data2;
     }
@@ -185,7 +193,6 @@ void exe(int read_data1, int read_data2, int writereg){
     else if(alu_op == "1100"){//nor
         result = ~(read_data1 | read_data2);
     }
-
     mem(writereg, result);
     cout << result << endl;
 }
@@ -213,14 +220,14 @@ void decode(string instr){
 
   control_unit(opcode);
 
-  
   if(instType2 == 1){  //r-type
     funct = instr.substr(25,6);
     cout << "r-type " << funct << endl;
     alu_control(funct);
   }
-
+  
   char instruct[n+1];
+  
   strcpy(instruct, instr.c_str());
   
 
@@ -247,6 +254,7 @@ void decode(string instr){
           immediate = immediate * 2;
           immediate = immediate + (instruct[p] - '0');
   }
+  
 
   read_data1 = regfile[read_reg1];
   read_data2 = regfile[read_reg2];
@@ -259,6 +267,7 @@ void decode(string instr){
   if (instType2 == 0) {
     read_data2 = immediate;
   }
+  cout << "going to exe with r1: " << read_data1 << " r2: " << read_data2 << " wr: " << writereg << endl;
 
   exe(read_data1, read_data2, writereg);
 }
@@ -272,9 +281,11 @@ void fetch(){
   int plc = pc / 4 * 34;
   if(plc < in.length()){
     string code = in.substr(plc, 32);
+    pc = pc + 4;
+    cout << pc/4 << " here now" << endl;
     decode(code);
   }
-  pc = pc + 4;
+  cout << "end of text" << endl;
 
 }
 
@@ -295,8 +306,6 @@ int main (){
     else{
       cout << "Unable to open file";
     } 
-
-    cout << "input: "<< endl << in << endl << endl;
 
     fetch();
 }
