@@ -167,60 +167,24 @@ void decode(string code){
   strcpy(instruct, instr.c_str());
 
   control_unit(opcode);
-
+  //execute jump data path
   if(jump == 1){
-    immediate = str.substring(6, 26);
+    immediate = str.substring(6, 32);
     //will finish later
   }
-  else if(branch )
+  //execute beq data path
+  else if(branch == 1){
 
-
-  for( int i = 0; i < n; i++){
-    cout << instruct[i];
   }
-  cout << endl;
-  
+  //execute R type
+  else if(ALUSrc == 0){
 
-  for(int y = 0; y < 6; y++){
-        opcode[y] = instruct[y];
-    }
-    
-    control_unit(opcode);
+  }
 
-    if(jump = 1){
-        for(int b = 6; b < 32; b++){
-          jump_address = jump_address * 2;
-          jump_address = jump_address + (instruct[b] - '0');
-        }
-      jump_target = jump_address * 4;
-    }
+  read_data1 = regfile[read_reg1];
+  read_data2 = regfile[read_reg2];
 
-    else{
-      if(instType2 = 1){
-        for(int a = 26; a < 32; a++){
-          funct[a-26] = instruct[a];
-        }
-        alu_control(funct);
-      }
-      else{
-        //i-type
-        cout<< " i-type" << endl;
-      }
-
-      for(int t = 6; t < 11; t++){
-          read_reg1 = read_reg1 * 2;
-          read_reg1 = read_reg1 + (instruct[t] - '0');
-      }
-
-      for(int p = 11; p < 16; p++){
-          read_reg2 = read_reg2 * 2;
-          read_reg2 = read_reg2 + (instruct[p] - '0');
-      }
-
-      read_data1 = regfile[read_reg1];
-      read_data2 = regfile[read_reg2];
-
-      exe(read_data1, read_data2);
+  exe(read_data1, read_data2);
       
     }
   }
