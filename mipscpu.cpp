@@ -99,16 +99,76 @@ void control_unit(string opcode){
 
 void fetch();
 
-
-void wb (){
-  fetch();
+void regVal(int rg)
+{
+    if(rg == 0){cout << "zero";}
+    if(rg == 1){cout << "at";}
+    if(rg == 2){cout << "v0";}
+    if(rg == 3){cout << "v1";}
+    if(rg == 4){cout << "a0";}
+    if(rg == 5){cout << "a1";}
+    if(rg == 6){cout << "a2";}
+    if(rg == 7){cout << "a3";}
+    if(rg == 8){cout << "t0";}
+    if(rg == 9){cout << "t1";}
+    if(rg == 10){cout << "t2";}
+    if(rg == 11){cout << "t3";}
+    if(rg == 12){cout << "t4";}
+    if(rg == 13){cout << "t5";}
+    if(rg == 14){cout << "t6";}
+    if(rg == 15){cout << "t7";}
+    if(rg == 16){cout << "s0";}
+    if(rg == 17){cout << "s1";}
+    if(rg == 18){cout << "s2";}
+    if(rg == 19){cout << "s3";}
+    if(rg == 20){cout << "s4";}
+    if(rg == 21){cout << "s5";}
+    if(rg == 22){cout << "s6";}
+    if(rg == 23){cout << "s7";}
+    if(rg == 24){cout << "t8";}
+    if(rg == 25){cout << "t9";}
+    if(rg == 26){cout << "k0";}
+    if(rg == 27){cout << "k1";}
+    if(rg == 28){cout << "gp";}
+    if(rg == 29){cout << "sp";}
+    if(rg == 30){cout << "fp";}
+    if(rg == 31){cout << "ra";}
 }
 
-void mem(){
-  wb();
+
+void wb (int writereg, int result){
+  if (regWrite == 0 && mem_Write == 1)
+    { // SW
+        d_mem[writereg] = result;
+        cout << "memory 0x" << hex << writereg << " is modified to 0x" << hex << result << endl;
+    }
+    else if (regWrite == 1)
+    { // R AND LW
+        regfile[writereg] = result;
+        cout << "$";
+        regVal(writereg);
+        cout << " is modified to 0x" << hex << result << endl;
+    }
+    total_clock_cycles = total_clock_cycles + 1;
 }
 
-void exe(int read_data1, int read_data2){
+void mem(int writereg, int result){
+  // Each entry of d_mem array will be accessed w/ following addresses
+	// refer to project description
+    int val = 0;
+    if (mem_Write == 1){ //SW
+        val = regfile[writereg];
+        wb(result, val);
+    }else if (mem_read == 1){ //lw
+        val = d_mem[result / 4]; // divide by 4 to place it in the memory by 4
+        wb(writereg, val);
+    }else{
+        // R/I
+        wb(writereg,result);
+    }
+}
+
+void exe(int read_data1, int read_data2, int writereg){
     int result;
     if(alu_op == "1000"){//add
         result = read_data1 + read_data2;
@@ -126,73 +186,82 @@ void exe(int read_data1, int read_data2){
         result = ~(read_data1 | read_data2);
     }
 
-    mem();
-  cout << result << endl;
+    mem(writereg, result);
+    cout << result << endl;
 }
 
 void decode(string instr){
 
   int n = instr.length();
-
   int read_reg1 = 0;
   int read_data1 = 0;
-
+  int writereg = 0;
   int read_reg2 = 0;
   int read_data2 = 0;
-
   int jump_address = 0;
   int branch_address = 0;
 
-  string immediate;
   string funct;
   string opcode;
 
   int rs = 0;
   int rt = 0;
   int rd = 0;
+  int immediate = 0;
+
   opcode = instr.substr(0,6);
 
-    
-    control_unit(opcode);
+  control_unit(opcode);
+
+  
+  if(instType2 == 1){  //r-type
+    funct = instr.substr(25,6);
+    cout << "r-type " << funct << endl;
+    alu_control(funct);
+  }
+
+  char instruct[n+1];
+  strcpy(instruct, instr.c_str());
   
 
-    if(jump = 1){ //Jump Instructions
-
-
-    }
-    else if(branch = 1){ //Branch Instructions
-
-    }
-    else{
-      if(instType2 = 1){  //r-type
-
-        funct = instr.substr(25,6);
-        cout << "r-type " << funct << endl;
-        alu_control(funct);
-
-      }
-      else{  //i-type
-
-        cout<< " i-type" << endl;
-
-      }
-
-      //for(int t = 6; t < 11; t++){
-      //    read_reg1 = read_reg1 * 2;
-      //    read_reg1 = read_reg1 + (instruct[t] - '0');
-      //}
-
-      //for(int p = 11; p < 16; p++){
-      //    read_reg2 = read_reg2 * 2;
-      //    read_reg2 = read_reg2 + (instruct[p] - '0');
-      //}
-
-      //read_data1 = regfile[read_reg1];
-      //read_data2 = regfile[read_reg2];
-
-      exe(read_data1, read_data2);
-    }
+  for(int t = 6; t < 11; t++){
+      read_reg1 = read_reg1 * 2;
+      read_reg1 = read_reg1 + (instruct[t] - '0');
   }
+
+  for(int p = 11; p < 16; p++){
+      read_reg2 = read_reg2 * 2;
+      read_reg2 = read_reg2 + (instruct[p] - '0');
+  }
+
+  for(int p = 16; p < 21; p++){
+      rd = rd * 2;
+      rd = rd + (instruct[p] - '0');
+  }
+
+  for(int p = 6; p < 32; p++){
+          jump_target = jump_target * 2;
+          jump_target = jump_target + (instruct[p] - '0');
+  }
+  for(int p = 16; p < 32; p++){
+          immediate = immediate * 2;
+          immediate = immediate + (instruct[p] - '0');
+  }
+
+  read_data1 = regfile[read_reg1];
+  read_data2 = regfile[read_reg2];
+  
+  writereg = read_reg2;
+  if (instType2 == 1) {
+    writereg = rd;
+  }
+  
+  if (instType2 == 0) {
+    read_data2 = immediate;
+  }
+
+  exe(read_data1, read_data2, writereg);
+}
     
 
 
