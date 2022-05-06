@@ -15,8 +15,8 @@ int branch_target = 0;
 int jump_target = 0;
 int branch =0;
 int jump = 0;
-int regfile[32] = {0}; // initialize registerfile entries with 0
-int d_mem [32] = {0}; // initialize d_mem entries with 0
+int registerfile[31] = {0}; // initialize registerfile entries with 0
+int d_mem [31] = {0}; // initialize d_mem entries with 0
 int regDST = 0;
 int regWrite = 0;
 int aluSRC = 0;
@@ -74,110 +74,44 @@ string negCheck(string immediate){
 
 int immCheck(string immediate){
 	if (immediate[0] == '1'){
-        immediate = negCheck(immediate);
+        immediate = "-" + negCheck(immediate);
     }
     return stoi(immediate, nullptr, 2);
 }
 
-string rv(int rg){
-    string val = "";
-    if(rg == 0){
-         val = "zero";
-        }
-    if(rg == 1){
-        val = "at";
-        }
-    if(rg == 2){
-        val = "v0";
-        }
-    if(rg == 3){
-        val = "v1";
-        }
-    if(rg == 4){
-        val = "a0";
-        }
-    if(rg == 5){
-        val = "a1";
-        }
-    if(rg == 6){
-        val = "a2";
-        }
-    if(rg == 7){
-        val = "a3";
-        }
-    if(rg == 8){
-        val = "t0";
-    }
-    if(rg == 9){
-        val = "t1";
-        }
-    if(rg == 10){
-        val = "t2";
-        }
-    if(rg == 11){
-        val = "t3";
-        }
-    if(rg == 12){
-        val = "t4";
-        }
-    if(rg == 13){
-        val = "t5";
-        }
-    if(rg == 14){
-        val = "t6";
-        }
-    if(rg == 15){
-        val = "t7";
-        }
-    if(rg == 16){
-        val = "s0";
-        }
-    if(rg == 17){
-        val = "s1";
-        }
-    if(rg == 18){
-        val = "s2";
-        }
-    if(rg == 19){
-        val = "s3";
-        }
-    if(rg == 20){
-        val = "s4";
-        }
-    if(rg == 21){
-        val = "s5";
-        }
-    if(rg == 22){
-        val = "s6";
-        }
-    if(rg == 23){
-        val = "s7";
-        }
-    if(rg == 24){
-        val = "t8";
-        }
-    if(rg == 25){
-        val = "t9";
-        }
-    if(rg == 26){
-        val = "k0";
-        }
-    if(rg == 27){
-        val = "k1";
-        }
-    if(rg == 28){
-        val = "gp";
-        }
-    if(rg == 29){
-        val = "sp";
-        }
-    if(rg == 30){
-        val = "fp";
-        }
-    if(rg == 31){
-        val = "ra";
-        }
-        return val;
+void regVal(int rg){
+    if(rg == 0){ cout << "zero";}
+    if(rg == 1){cout << "at";}
+    if(rg == 2){cout << "v0";}
+    if(rg == 3){cout << "v1";}
+    if(rg == 4){cout << "a0";}
+    if(rg == 5){cout << "a1";}
+    if(rg == 6){cout << "a2";}
+    if(rg == 7){cout << "a3";}
+    if(rg == 8){cout << "t0";}
+    if(rg == 9){cout << "t1";}
+    if(rg == 10){cout << "t2";}
+    if(rg == 11){cout << "t3";}
+    if(rg == 12){cout << "t4";}
+    if(rg == 13){cout << "t5";}
+    if(rg == 14){cout << "t6";}
+    if(rg == 15){cout << "t7";}
+    if(rg == 16){cout << "s0";}
+    if(rg == 17){cout << "s1";}
+    if(rg == 18){cout << "s2";}
+    if(rg == 19){cout << "s3";}
+    if(rg == 20){cout << "s4";}
+    if(rg == 21){cout << "s5";}
+    if(rg == 22){cout << "s6";}
+    if(rg == 23){cout << "s7";}
+    if(rg == 24){cout << "t8";}
+    if(rg == 25){cout << "t9";}
+    if(rg == 26){cout << "k0";}
+    if(rg == 27){cout << "k1";}
+    if(rg == 28){cout << "gp";}
+    if(rg == 29){cout << "sp";}
+    if(rg == 30){cout << "fp";}
+    if(rg == 31){cout << "ra";}
 }
 
 int binToDec(string address){
@@ -185,8 +119,10 @@ int binToDec(string address){
 }
 
 void ControlUnit(string op){
-	// generates control signals using opcode
-	// initialize w/ zeros
+	// called by decode to generate control signals
+	// recieves 6-bit opcode value and generate 9 control signals
+	// page 3 of processor-3 slide
+	// declare one global signal per control signal (RegWrite, RegDist, ...) and initialize w/ zeros
 
     if (op == "000000"){ // ADD, SUB, AND, OR, NOR, SLT
         regWrite = 1;
@@ -258,8 +194,10 @@ void Writeback(int rg, int result){
         d_mem[rg] = result;
         cout << "memory 0x" << hex << rg << " is modified to 0x" << hex << result << endl;
     }else if (regWrite == 1){ // R AND LW
-        regfile[rg] = result;
-        cout << "$" << rv(rg) << " is modified to 0x" << hex << result << endl;
+        registerfile[rg] = result;
+        cout << "$";
+        regVal(rg);
+        cout << " is modified to 0x" << hex << result << endl;
     }
     total_clock_cycles = total_clock_cycles + 1;
 }
@@ -269,7 +207,7 @@ void Mem(int rg, int address){
 	// refer to project description
     int val = 0;
     if (memWrite == 1){ //SW
-        val = regfile[rg];
+        val = registerfile[rg];
         Writeback(address, val);
     }else if (memRead == 1){ //lw
         val = d_mem[address/4]; // divide by 4 to place it in the memory by 4
@@ -279,7 +217,7 @@ void Mem(int rg, int address){
     }
 }
 
-void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
+void Execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
 	// Should recieve 4-bit alu_op input and run operations (page 10 of Processor-2 slides)
 	// alu-zero for zero output
 	// branch target address - should also calculate branch target address named branch_target
@@ -289,35 +227,33 @@ void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
     int val = 0;
     
     if (alu_op == "0000"){ //AND
-        val = regfile[rs] & regfile[rt]; 
+        val = registerfile[rs] & registerfile[rt]; 
     } 
     if (alu_op == "0001"){  //OR
-        val = regfile[rs] | regfile[rt]; 
+        val = registerfile[rs] | registerfile[rt]; 
     }
     if (alu_op == "0110"){ //SUBTRACT AND BEQ
-        val = regfile[rs] - regfile[rt]; 
+        val = registerfile[rs] - registerfile[rt]; 
     }
     if (alu_op == "1100"){ //NOR
-        val = ~(regfile[rs] | regfile[rt]); 
+        val = ~(registerfile[rs] | registerfile[rt]); 
     }
     if (alu_op == "0010"){ // LW AND SW
         if (aluSRC == 1){
-            val = regfile[rs] + address;
+            val = registerfile[rs] + address;
         }else{ // Else add
-            val = regfile[rs] + regfile[rt];
+            val = registerfile[rs] + registerfile[rt];
         }
     }
     if (alu_op == "0111"){ // SLT
-        if (regfile[rs] < regfile[rt]){
+        if (registerfile[rs] < registerfile[rt]){
             val = 1;
         }else{
             val = 0;
         }
     }
 
-    if(memToReg == 10){ //JAL
-        cout << "somethin happen" << endl;
-        jump_target = 31;
+    if(memToReg == 10){
         Mem(jump_target, address);
     }
     //checking BEQ with alu_zero. if 1, jump to branch.
@@ -330,15 +266,18 @@ void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
     // check LW, SW, or R/I type
     if (memWrite == 1 || memRead == 1){ //LW and SW
         Mem(rt, val);
-    }else{ // Otherwise R or I type
+    }else{ // Otherwise R/I
         Mem(rd, val);
     }
 
 }
 
-void decode(string str){
+void Decode(string str){
+	// Similar to lab 3
 	// should be able to do sign-extension for offset field of I-type instructions
-	// for jump - fill jump address in jump_target, run shift-left-2 then merge with first 4 bits of next_pc
+	// page 15 of lecture slide
+	// for jump - fill jump address in jump_target, run shift-left-2
+	// then merge with first 4 bits of next_pc
 	int rs = 0;
 	int rt = 0;
 	int rd = 0;
@@ -347,27 +286,26 @@ void decode(string str){
 	string funct;
 	string immediate;
 	string alu_op;
-	string opcode = str.substr(0, 6); // get opcode
+	string firstSix = str.substr(0, 6); // get opcode
 
-	ControlUnit(opcode); //control unit
+	// cout << firstSix << endl;
+
+	ControlUnit(firstSix); // check opcode
 
 	if(jump == 1){
 		immediate = str.substr(6, 26);
 		address = immCheck(immediate);
 		address = address << 2;
-        cout << "address :" << address << endl;
 		jump_target = address;
-	}
-    else if(branch == 1){
+	}else if(branch == 1){
 		rs = binToDec(str.substr(6, 5));
         rt = binToDec(str.substr(11, 5));
-		alu_op = alu(opcode);
+		alu_op = alu(firstSix);
 		immediate = str.substr(16,16);
 		address = immCheck(immediate);
 		address = address << 2;
 		branch_target = address;
-	}
-    else{
+	}else{
 		rs = binToDec(str.substr(6, 5));
         if (regDST == 1 && regWrite == 1){
             rd = binToDec(str.substr(16, 5));
@@ -380,15 +318,14 @@ void decode(string str){
             shamt = binToDec(str.substr(21,5));
             funct = str.substr(26, 6);
             alu_op = alu(funct); //alu_op determined by funct  
-        }
-        else{ // Immediate LW and SW
+        }else{ // Immediate LW and SW
             immediate = str.substr(16, 16);
-            alu_op = alu(opcode); //alu_op determined by opcode
+            alu_op = alu(firstSix); //alu_op determined by opcode
             address = immCheck(immediate);
         }
 	}
     
-    execute(alu_op, rs, rt, rd, shamt, address);
+    Execute(alu_op, rs, rt, rd, shamt, address);
 	
 }
 
@@ -403,7 +340,7 @@ void Fetch(vector<string> instruct){
 	while(pc/4 < instruct.size()){
 		cout << "total_clock_cycles " << dec << total_clock_cycles + 1 << ":" << endl;
 
-		decode(instruct[pc/4]);
+		Decode(instruct[pc/4]);
 		
 		int next_pc = pc + 4; // update pc
 
@@ -425,36 +362,62 @@ void Fetch(vector<string> instruct){
 }
 
 int main() {
-    
-	vector<string> instruction; // vector to store text file contents
-	string line; //line of code from text file
-	string filename; //hardcoded filenames
-	int sample; //user input of which file
+    // sample_part1.txt
+    //register initial
+    // $t1 = 0x20
+    // $t2 = 0x5 
+    // $s0 = 0x70
+    // d_mem initial
+    // 0x70 = 0x5
+    // 0x74 = 0x10
 
-        cout << "Enter file number to run: "; //user file choice
-        cin >> sample;
-    if(sample == 1){ //file 1
-        regfile[9] = 0x20;
-        regfile[10] = 0x5;
-        regfile[16] = 0x70;
+    // registerfile[9] = 0x20;
+    // registerfile[10] = 0x5;
+    // registerfile[16] = 0x70;
+    // d_mem[28] = 0x5;
+    // d_mem[29] = 0x10;
+
+    // sample_part2.txt
+    //register initial
+    // $s0 = 0x20
+    // $a0 = 0x5 
+    // $a1 = 0x2 
+    // $a3 = 0xa
+
+    // registerfile[16] = 0x20;
+    // registerfile[4] = 0x5;
+    // registerfile[5] = 0x2;
+    // registerfile[7] = 0xa;
+
+
+    // get 32 bit binary from text file
+	vector<string> instruction; // create vector for storing mips instruction
+	string str; // str string for reading from filename using getline
+	string filename; // string for the name of file
+	
+
+    cout << "Enter file name to run:\n"; // file name input
+    cin >> filename;
+
+    if(filename == "sample_part1.txt"){
+        registerfile[9] = 0x20;
+        registerfile[10] = 0x5;
+        registerfile[16] = 0x70;
         d_mem[28] = 0x5;
         d_mem[29] = 0x10;
-        filename = "sample_part1.txt";
-        cout << "you chose file 1\n" << endl;
-    }
-    else if(sample == 2){ //file 2
-        regfile[16] = 0x20;
-        regfile[4] = 0x5;
-        regfile[5] = 0x2;
-        regfile[7] = 0xa;
-        filename = "sample_part2.txt";
-        cout << "you chose file 2\n" << endl;
+    }else if(filename == "sample_part2.txt"){
+        registerfile[16] = 0x20;
+        registerfile[4] = 0x5;
+        registerfile[5] = 0x2;
+        registerfile[7] = 0xa;
     }
 
-    ifstream file(filename); // load text file into the vector
-    while(getline(file, line)){
-        instruction.push_back(line);
+    ifstream file(filename); // input file to ifstream for operation
+    while(getline(file, str)){
+        instruction.push_back(str);
     }
     Fetch(instruction);
 
 }
+// Fetch(), Decode(), Execute(), Mem(), and 
+//WriteBack() of the first part (supporting 10 instructions)
