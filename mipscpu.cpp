@@ -26,32 +26,33 @@ int memToReg = 0;
 int jumpREG = 0;
 
 string alu(string code){
-    //Create seperate function for ALU control called by ControlUnit
-    //To generate ALU OP ocde used by execute()
+    //seperate function for ALU control
+    //generates ALUOP code used by execute()
 
-	string funct;
+	string aluop;
     if (code == "100100"){ //AND
-        funct = "0000";
+        aluop = "0000";
     }
     if (code == "100101"){ //OR
-        funct = "0001";
+        aluop = "0001";
     }
     if (code == "100000" || code == "101011" || code == "100011"){ // SW and LW ADD                                                              
-        funct = "0010";
+        aluop = "0010";
     }
     if (code == "100010" || code == "000100"){ //SUB and BEQ
-        funct = "0110";
+        aluop = "0110";
     }
     if (code == "101010"){ //SLT
-        funct = "0111";
+        aluop = "0111";
     }
     if (code == "100111"){ //NOR
-        funct = "1100";
+        aluop = "1100";
     }
-    return funct;
+    return aluop;
 }
 
 string negativeVal(string immediate){
+  //sign-extention, two's complement
     for (int i = 0; i < immediate.size(); i++){
         if (immediate[i] == '1'){
             immediate[i] = '0';
@@ -73,6 +74,7 @@ string negativeVal(string immediate){
 }
 
 int immCheck(string immediate){
+  //checks if immediate is neg to see if it needs sign extention
 	if (immediate[0] == '1'){
         immediate = negativeVal(immediate);
     }
@@ -81,6 +83,7 @@ int immCheck(string immediate){
 
 string rv(int rg){
     string val = "";
+    //names of registers
     if(rg == 0){
          val = "zero";
         }
@@ -181,6 +184,7 @@ string rv(int rg){
 }
 
 int binToDec(string address){
+  //binary to decimal
   int value = 0;
   int index = 0;
   for(int i = address.length() - 1;i >= 0;i--){
@@ -259,8 +263,7 @@ void ControlUnit(string op){
 }
 
 void Writeback(int rg, int result){
-	// Get computation results from ALU and data from data memory and update destination register in registerfile array
-	// Last step of instruction excecution
+	// Get results from ALU and data from d_mem and updates destination register in registerfile
 
     if (regWrite == 0 && memWrite == 1){ // SW
         
@@ -273,7 +276,7 @@ void Writeback(int rg, int result){
 
 void Mem(int rg, int address){
 	// Each entry of d_mem array will be accessed w/ following addresses
-	// refer to project description
+  // updates d_mem
     int val = 0;
     if (memWrite == 1){ //SW
         d_mem[address] = val;
@@ -290,10 +293,15 @@ void Mem(int rg, int address){
 }
 
 void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
-	//should recieve 4-bit alu_op input and run arithmetic and boolean operations
-	//branch target address - should also calculate branch target address named branch_target
-	//shift-left-2 of sign-extended offset input
+
+	//uses alu_op to determine what kind of math we are doing
+
+	//seperate code for jump and branch where branch/jump target address is updated
+
+	//shift-left-2 sign-extended offset input
+
 	//add shift-left-2 w/ PC+4 value
+
     int val = 0;
     
     if (alu_op == "0000"){ //AND
@@ -311,24 +319,28 @@ void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
     if (alu_op == "0010"){ // LW AND SW
         if (aluSRC == 1){
             val = registerfile[rs] + address;
-        }else{ // Else add
+        }
+        else{ // Else add
             val = registerfile[rs] + registerfile[rt];
         }
     }
     if (alu_op == "0111"){ // SLT
         if (registerfile[rs] < registerfile[rt]){
             val = 1;
-        }else{
+        }
+        else{
             val = 0;
         }
     }
 
     if(memToReg == 10){ //JAL
-        //cout << "somethin happen" << endl;
-        //jump_target = 31;
+        cout << "JAL attempted" << endl;
+        address = jump_target;
+        jump_target = 31;
         Mem(jump_target, address);
     }
-    //checking BEQ with alu_zero. if 1, jump to branch.
+
+    //checking BEQ and setting alu_zero
     if (val == 0 && branch == 1){
         alu_zero = 1;
     }else{
@@ -338,15 +350,16 @@ void execute(string alu_op, int rs, int rt, int rd, int shamt, int address){
     // check LW, SW, or R/I type
     if (memWrite == 1 || memRead == 1){ //LW and SW
         Mem(rt, val);
-    }else{ // Otherwise R or I type
+    }
+
+    else{ // R or I type
         Mem(rd, val);
     }
 
 }
 
 void decode(string str){
-	// should be able to do sign-extension for offset field of I-type instructions
-	// for jump - fill jump address in jump_target, run shift-left-2 then merge with first 4 bits of next_pc
+  //decode sets rs rt rd and other necessary registers depending on the instruction and sends to execute
 	int rs = 0;
 	int rt = 0;
 	int rd = 0;
@@ -357,17 +370,19 @@ void decode(string str){
 	string alu_op;
 	string opcode = str.substr(0, 6); // get opcode
 
+
+  // send opcode to control unit
 	ControlUnit(opcode);
-  //if instruction is jump. we will splice our machine instruction according to
-  //type of instructions via substrings
-	if(jump == 1){
+
+  //sign extention when necessary
+	if(jump == 1){  //J OR JAL
 		immediate = str.substr(6, 26);
 		address = immCheck(immediate);
 		address = address << 2;
         cout << "address :" << address << endl;
 		jump_target = address;
 	}
-    else if(branch == 1){
+    else if(branch == 1){ //BRANCH
 		rs = binToDec(str.substr(6, 5));
         rt = binToDec(str.substr(11, 5));
 		alu_op = alu(opcode);
@@ -376,7 +391,8 @@ void decode(string str){
 		address = address << 2;
 		branch_target = address;
 	}
-    else{
+
+    else{  // R and I
 		rs = binToDec(str.substr(6, 5));
         if (regDST == 1 && regWrite == 1){
             rd = binToDec(str.substr(16, 5));
@@ -390,21 +406,21 @@ void decode(string str){
             funct = str.substr(26, 6);
             alu_op = alu(funct); //alu_op determined by funct  
         }
+
         else{ // Immediate LW and SW
             immediate = str.substr(16, 16);
             alu_op = alu(opcode); //alu_op determined by opcode
             address = immCheck(immediate);
         }
 	}
-    
+    //sends to execute no matter what
     execute(alu_op, rs, rt, rd, shamt, address);
 	
 }
 
 void Fetch(vector<string> instruct){
-	//when sucessfully fetched, cc incremented by 1 
-	//increment pc by 4 and read i*4 instruction
-	// if pc is 4, read first instruction
+  
+  // Runs lines of instructions from the file. Goes until pc/4 is bigger than the number of lines in the file
 
 	while(pc/4 < instruct.size()){
 		cout << "total_clock_cycles " << dec << total_clock_cycles + 1 << ":" << endl;
@@ -424,6 +440,7 @@ void Fetch(vector<string> instruct){
 		cout << "pc is modified to 0x" << hex << pc << endl << endl;
 	
 	}
+  //outputs clock cycles
 
 	cout << "program terminated:" << endl;
 	cout << "total execution time: " << total_clock_cycles << " cycles." << endl;
@@ -433,12 +450,14 @@ void Fetch(vector<string> instruct){
 int main() {
     
 	vector<string> instruction; // vector to store text file contents
-	string line; //line of code from text file
-	string filename; //hardcoded filenames
+	string line;      //line of code from text file
+	string filename;  //hardcoded filenames
 	  cout << "Enter file name to run:\n";
     cin >> filename;
     cout << "\n";
-    //initializign reg file/d mem array as project pdf 
+
+    //reg file and data mem presets
+
     if(filename == "sample_part1.txt"){
       registerfile[9] = 0x20;
         registerfile[10] = 0x5;
@@ -453,7 +472,8 @@ int main() {
         registerfile[7] = 0xa;
     }
 
-    ifstream file(filename); // load text file into the vector
+    // load text file into the vector
+    ifstream file(filename); 
     while(getline(file, line)){
         instruction.push_back(line);
     }
